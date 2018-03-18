@@ -198,6 +198,26 @@ local function equip_next_camera()
 		return
 	end
 
+	local target = windower.ffxi.get_mob_by_target('t')
+	if target == nil or target.name == '' then
+		log('No target. Targeting nearest NPC.')
+        windower.send_command('input /targetnpc')
+        
+		coroutine.schedule(equip_next_camera, 1)
+		return
+	elseif target.id == player.id then
+		log('Nobody wants a picture of you.')
+
+		-- escape, try target npc.
+        windower.send_command('setkey escape down')
+        coroutine.sleep(.2)
+        windower.send_command('setkey escape up')
+        coroutine.sleep(.2)
+
+		coroutine.schedule(equip_next_camera, 1)
+		return
+	end
+
 	if not find_and_equip_camera() then 
 		log('Unable to equip camera. None are in inventory or all cameras are out of charges.')
 		stop()
