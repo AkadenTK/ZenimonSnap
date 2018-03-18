@@ -126,9 +126,11 @@ end
 ---------- Main section --------------
 -- stop either trading or taking pictures.
 local function stop()
-	state.stopping = true
-	windower.send_command('gs enable range ammo')
-	log('Stopped.')
+	if not state.stopping then
+		state.stopping = true
+		windower.send_command('gs enable range ammo')
+		log('Stopped.')
+	end
 end
 
 ------- Photo section --------
