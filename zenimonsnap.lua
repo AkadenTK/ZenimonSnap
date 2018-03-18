@@ -188,7 +188,13 @@ local function equip_next_camera()
 		return
 	end
 
-	
+	local bags = windower.ffxi.get_bag_info()
+	debug("inv check: "..bags.inventory.count..'/'..bags.inventory.max)
+	if bags.inventory.max >= 30 and bags.inventory.count == bags.inventory.max then
+		log('Inventory is full.')
+		stop()
+		return
+	end
 
 	if not find_and_equip_camera() then 
 		log('Unable to equip camera. None are in inventory or all cameras are out of charges.')
