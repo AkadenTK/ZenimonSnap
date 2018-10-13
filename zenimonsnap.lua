@@ -17,6 +17,7 @@ state = {
 	equip_locked = false,
 	equipped_camera = nil,
 	trying_use_camera = false,
+	trading_plates=false,
 	log_debug = false,
 }
 
@@ -128,6 +129,7 @@ end
 local function stop()
 	if not state.stopping then
 		state.stopping = true
+		state.trading_plates = false
 		windower.send_command('gs enable range ammo')
 		log('Stopped.')
 	end
@@ -246,8 +248,46 @@ local function begin_snap()
 end
 
 --------- Trading section -----------
+
+local function get_mob_by_name(name)
+    local mobs = windower.ffxi.get_mob_array()
+    for i, mob in pairs(mobs) do
+        if (mob.name == name) and (math.sqrt(mob.distance) < 6) then
+            return mob
+        end
+    end
+end
+
+local function trade_plate()
+	local plate_item = get_inventory_item("Soul Plate")
+	if not plate_item then
+		state.trading_plates = false
+		log("No plates found in inventory.")
+		return
+	end
+
+	local npc = get_mob_by_name('Sanraku')
+	if not npc then
+		state.trading_plates = false
+		log("Can't find Sanraku!")
+		return
+	end
+
+	local trade = packets.new('outgoing', 0x36, {
+        ['Target'] = npc.id,
+        ['Target Index'] = npc.index,
+    })
+    trade['Item Index 1':format(idx)] = plate_item.index
+    trade['Item Count 1':format(idx)] = 1
+	trade['Number of Items'] = 1
+	packets.inject(trade)	
+end
+
 -- begin trading soul plates to the npc vendor.
 local function begin_trade()
+	state.trading_plates = true
+
+	trade_plate()
 end
 
 local function toggle_debug()
@@ -315,3 +355,11 @@ windower.register_event('incoming chunk', on_item_failure)
 windower.register_event('incoming chunk', on_item_success)
 windower.register_event('incoming chunk', on_item_start)
 windower.register_event('unload', stop)
+
+windower.register_event('status change', function(new_status_id)
+    if new_status_id ~= 4 then
+    	if state.trading_plates then
+			coroutine.schedule(trade_plate, 0.5)
+    	end
+	end
+end)
