@@ -233,9 +233,11 @@ local function equip_next_camera()
 	end
 
 	local recast_info = get_recast_info(state.equipped_camera)
-	local next_time = math.max(recast_info.activation_time,recast_info.next_use_time)
-	debug(state.equipped_camera..' ready in '..next_time..' seconds.')	
-	coroutine.schedule(use_camera, next_time)
+	if recast_info then
+		local next_time = math.max(recast_info.activation_time,recast_info.next_use_time)
+		debug(state.equipped_camera..' ready in '..next_time..' seconds.')	
+		coroutine.schedule(use_camera, next_time)
+	end
 end
 
 -- begin taking pictures of the targeted enemy.
